@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Навигатор по выплатам</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F7F5F0;
+            --text-main: #2A2A2A;
+            --text-muted: #5C5C5C;
+            --accent: #2C4251;
+            --accent-hover: #1A2832;
+            --card-bg: #FFFFFF;
+            --border-color: #E2DFD8;
+            --template-bg: #F0F2F5;
+            --soft-yellow: #FFF9EB;
+            --border-yellow: #FFE08A;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        a:focus-visible, button:focus-visible {
+            outline: 2px dashed var(--accent);
+            outline-offset: 4px;
+        }
+
+        .text-muted { color: var(--text-muted); }
+        .text-small { font-size: 0.9rem; }
+        .text-medium { font-size: 1.1rem; }
+        .mt-12 { margin-top: 12px; }
+        .mt-16 { margin-top: 16px; }
+        .mt-32 { margin-top: 32px; }
+        .mb-8 { margin-bottom: 8px; }
+        .mb-16 { margin-bottom: 16px; }
+        .mb-32 { margin-bottom: 32px; }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .timeline {
+            position: relative;
+            margin-bottom: 60px;
+            padding-left: 24px;
+            border-left: 2px solid var(--accent);
+            list-style: none;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--bg-color);
+            border: 2px solid var(--accent);
+            z-index: 1;
+        }
+
+        .timeline-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            padding-right: 24px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .timeline-link::after {
+            content: '→';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            color: var(--accent);
+            font-weight: bold;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .timeline-link:hover {
+            transform: translateX(8px);
+            opacity: 0.9;
+        }
+
+        .timeline-link:hover::after {
+            opacity: 1;
+            transform: translate(8px, -50%);
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            scroll-margin-top: 40px; 
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .step-number {
+            background-color: var(--accent);
+            color: #FFF;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: 16px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+        }
+
+        .sum-badge {
+            display: inline-block;
+            background-color: #E8F0EE;
+            color: #2F564B;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .docs-list {
+            background-color: #FAFAFA;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #EAEAEA;
+        }
+
+        .docs-list h3 {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .docs-list ul {
+            list-style-type: none;
+        }
+
+        .docs-list li {
+            position: relative;
+            padding-left: 26px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .docs-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232C4251' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .template-box {
+            background-color: var(--template-bg);
+            border-left: 4px solid var(--accent);
+            padding: 24px;
+            margin: 20px 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            color: #333;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tech-note {
+            background-color: var(--soft-yellow);
+            border: 1px solid var(--border-yellow);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent);
+            color: #FFFFFF;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .source-link {
+            display: inline-block;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: underline;
+        }
+
+        .source-link:hover {
+            color: var(--accent);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--accent);
+            color: #FFF;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            z-index: 100;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-4px);
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 30px 16px; }
+            .header h1 { font-size: 2.2rem; }
+            .card { padding: 24px; }
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body id="top">
+
+<div class="container">
+    <header class="header">
+        <h1>Навигатор по выплатам</h1>
+        <p>Подробное руководство для Оли и Димы♥️</p>
+    </header>
+
+    <main>
+        <section class="card" id="prep-step">
+            <h2>Подготовительный этап</h2>
+            <p class="text-muted mt-12">
+                Перед началом оформления убедитесь, что в вашем профиле на портале Госуслуг привязаны актуальные реквизиты банковского счета карты <strong>«Мир»</strong>. Все государственные и региональные пособия зачисляются исключительно на эту платежную систему.
+            </p>
+
+            <div class="tech-note">
+                <strong>Как привязать счет на Госуслугах:</strong><br>
+                1. Зайдите в личный кабинет <strong>Госуслуг</strong>.<br>
+                2. Перейдите в раздел <strong>«Профиль»</strong>.<br>
+                3. Выберите пункт <strong>«Документы и данные»</strong> → вкладка <strong>«Банковские счета»</strong>.<br>
+                4. Нажмите «Добавить» и введите 20-значный номер <strong>счета</strong> (начинается на 40817..., не путать с 16 цифрами на самой карте).
+            </div>
+        </section>
+
+        <nav aria-label="Таймлайн событий">
+            <ol class="timeline">
+                <li class="timeline-item">
+                    <a href="#step-1" class="timeline-link">
+                        <div class="timeline-date">Май — Июнь 2026</div>
+                        <div class="timeline-title">Оформление постоянной прописки и подача на Единое пособие (беременность).</div>
+                    </a>
+                </li>
+                <li class="timeline-item">
+                    <a href="#step-3" class="timeline-link">
+                        <div class="timeline-date">Август 2026 (30-я неделя)</div>
+                        <div class="timeline-title">Оформление электронного больничного листа (Декретные выплаты).</div>
+                    </a>
+                </li>
+                <li class="timeline-item">
+                    <a href="#step-4" class="timeline-link">
+                        <div class="timeline-date">26 Октября 2026</div>
+                        <div class="timeline-title">ПДР. Рождение ребенка.</div>
+                    </a>
+                </li>
+                <li class="timeline-item">
+                    <a href="#step-5" class="timeline-link">
+                        <div class="timeline-date">Ноябрь 2026</div>
+                        <div class="timeline-title">Оформление документов в ЗАГСе и подача заявок на детские пособия.</div>
+                    </a>
+                </li>
+            </ol>
+        </nav>
+
+        <section class="card" id="step-1">
+            <div class="card-header">
+                <div class="step-number">1</div>
+                <h2>Переезд и регистрация</h2>
+            </div>
+            <p>Для получения высоких северных коэффициентов и региональных выплат (включая «Зарплату мамы») Оле необходимо оформить постоянную регистрацию в Мурманской области. Выписываться из Карелии самостоятельно не нужно — ведомства сделают это автоматически при постановке на новый учет.</p>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы:</h3>
+                <ul>
+                    <li>Паспорт гражданина РФ</li>
+                    <li>Документ, подтверждающий право собственности на жилье в Мурманске, либо нотариальное согласие собственника</li>
+                </ul>
+            </div>
+            
+            <a href="https://www.gosuslugi.ru/600204/1/form" target="_blank" rel="noopener noreferrer" class="btn" role="button">Оформить прописку (Госуслуги)</a>
+            <a href="https://www.consultant.ru/document/cons_doc_LAW_2255/" target="_blank" rel="noopener noreferrer" class="source-link">Закон РФ от 25.06.1993 N 5242-1 (О праве на свободу передвижения)</a>
+        </section>
+
+        <section class="card" id="step-2">
+            <div class="card-header">
+                <div class="step-number">2</div>
+                <h2>Пособие для беременных (Единое)</h2>
+            </div>
+            <div class="sum-badge">До 28 783 руб. / месяц</div>
+            <p>Поскольку Оля встала на медицинский учет до 12 недель, ей полагается ежемесячная выплата. Наличие официального стажа по трудовому договору в 2025 году и текущего договора ГПХ подтверждает ее занятость для Социального фонда (правило «нулевого дохода» соблюдено).</p>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы:</h3>
+                <ul>
+                    <li>Паспорт РФ (с новой мурманской пропиской)</li>
+                    <li>СНИЛС</li>
+                    <li>Реквизиты счета карты «Мир»</li>
+                    <li>Сведения из женской консультации запрашиваются ведомством автоматически</li>
+                </ul>
+            </div>
+            
+            <a href="https://www.gosuslugi.ru/10630/1/form" target="_blank" rel="noopener noreferrer" class="btn" role="button">Подать заявление (Госуслуги)</a>
+            <a href="https://www.consultant.ru/document/cons_doc_LAW_7119/be048b21c43557e1039866e408ec2d8c3686851b/" target="_blank" rel="noopener noreferrer" class="source-link">ФЗ-81, ст. 9 (О едином пособии)</a>
+        </section>
+
+        <section class="card" id="step-3">
+            <div class="card-header">
+                <div class="step-number">3</div>
+                <h2>Декретные (Больничный лист)</h2>
+            </div>
+            <div class="sum-badge">Около 130 000 — 150 000 руб. (Разово)</div>
+            <p>Несмотря на то, что сейчас Оля работает по договору ГПХ, она имеет право на оплату больничного листа продолжительностью 140 дней. Основанием является уплата работодателем страховых взносов по трудовому договору в 2025 году.</p>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы:</h3>
+                <ul>
+                    <li>Электронный листок нетрудоспособности на 140 дней (выдается врачом в 30 недель)</li>
+                    <li>Текущий договор ГПХ и справка 2-НДФЛ за 2025 год (предоставляются только по запросу СФР)</li>
+                </ul>
+            </div>
+            <p class="text-small text-muted mt-12">Заявление писать не нужно. Социальный фонд автоматически получит данные из поликлиники и переведет деньги на привязанную карту.</p>
+        </section>
+
+        <section class="card" id="step-4">
+            <div class="card-header">
+                <div class="step-number">4</div>
+                <h2>Рождение и ЗАГС (Установление отцовства)</h2>
+            </div>
+            <p><strong>Юридическая рекомендация:</strong> Финансово целесообразно на данном этапе не регистрировать брак. Это позволит избежать объединения доходов при их оценке. В день получения свидетельства о рождении вам необходимо оформить процедуру установления отцовства. Дима будет признан официальным отцом, но для социальных служб Оля останется единственным заявителем.</p>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы (для ЗАГСа):</h3>
+                <ul>
+                    <li>Паспорта РФ Оли и Димы</li>
+                    <li>Медицинское свидетельство о рождении (выдается в роддоме)</li>
+                    <li>Квитанция об оплате госпошлины</li>
+                </ul>
+            </div>
+            
+            <a href="https://www.gosuslugi.ru/600371/1/form" target="_blank" rel="noopener noreferrer" class="btn" role="button">Записаться в ЗАГС (Госуслуги)</a>
+
+            <div class="tech-note mt-32">
+                <strong>Как заказать справку о неполучении пособия (нужна Диме на работу):</strong><br>
+                Бухгалтерия Димы должна убедиться, что Оля не получает деньги на этого ребенка.<br><br>
+                1. Зайдите на <strong>Госуслуги</strong>.<br>
+                2. В поиске введите: <strong>«Справка о назначенных мерах социальной поддержки»</strong>.<br>
+                3. Закажите справку за последний месяц. В ней будет официально подтверждено отсутствие назначения пособия по уходу до 1.5 лет. Документ придет в формате PDF с электронной печатью — его Дима распечатает и отнесет на работу.
+            </div>
+        </section>
+
+        <section class="card" id="step-5">
+            <div class="card-header">
+                <div class="step-number">5</div>
+                <h2>Выплаты от работодателя (Оформляет Дима)</h2>
+            </div>
+            <p>Поскольку Дима официально трудоустроен, оформление ряда выплат происходит через его бухгалтерию. По закону 2026 года Дима имеет право оформить отпуск по уходу за ребенком, но <strong>продолжать работать полный рабочий день</strong>. Таким образом, он сохраняет 100% своей заработной платы и получает дополнительно пособие до 1,5 лет.</p>
+            
+            <div class="docs-list">
+                <h3>Пакет документов для бухгалтерии:</h3>
+                <ul>
+                    <li>Копия свидетельства о рождении ребенка</li>
+                    <li>Копия справки об установлении отцовства (из ЗАГСа)</li>
+                    <li>Справка из Социального фонда (на имя Оли) о том, что мать данные пособия не получает</li>
+                </ul>
+            </div>
+
+            <h3 class="mt-32 text-medium">Шаблон 1: На разовую выплату при рождении (~41 250 руб.)</h3>
+            <div class="template-box">Директору _________________________
+от _______________________________
+(должность и ФИО Димы)
+
+ЗАЯВЛЕНИЕ
+
+Прошу выплатить мне единовременное пособие при рождении ребенка, (ФИО ребенка полностью, дата рождения). 
+
+Приложения: 
+1. Копия свидетельства о рождении ребенка.
+2. Копия справки об установлении отцовства.
+3. Справка из СФР о неполучении пособия матерью.
+
+Дата: «___» _________ 2026 г.        Подпись: ___________</div>
+
+            <h3 class="mt-32 text-medium">Шаблон 2: На отпуск по уходу с выходом на работу (~23 841 руб. / мес)</h3>
+            <div class="template-box">Директору _________________________
+от _______________________________
+(должность и ФИО Димы)
+
+ЗАЯВЛЕНИЕ
+
+1. Прошу предоставить мне отпуск по уходу за ребенком до достижения им возраста 1,5 лет с «___» _________ 2026 г.
+2. В соответствии со ст. 256 Трудового кодекса РФ прошу разрешить мне приступить к работе на условиях полного рабочего времени с сохранением права на получение пособия по государственному социальному страхованию.
+
+Приложения: 
+1. Копия свидетельства о рождении ребенка.
+2. Копия справки об установлении отцовства.
+3. Справка из СФР о неполучении пособия матерью.
+
+Дата: «___» _________ 2026 г.        Подпись: ___________</div>
+        </section>
+
+        <section class="card" id="step-6">
+            <div class="card-header">
+                <div class="step-number">6</div>
+                <h2>Детские выплаты (Оформляет Оля)</h2>
+            </div>
+            
+            <h3 class="text-medium mb-8">1. Единое пособие на ребенка (до 17 лет)</h3>
+            <div class="sum-badge">до 25 614 руб. / месяц</div>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы:</h3>
+                <ul>
+                    <li>Паспорт РФ (с мурманской пропиской)</li>
+                    <li>Свидетельства о рождении обоих детей (чтобы подтвердить, что новорожденный — второй)</li>
+                    <li>СНИЛС всех членов семьи</li>
+                    <li>Реквизиты счета карты «Мир»</li>
+                </ul>
+            </div>
+            <a href="https://www.gosuslugi.ru/10630/1/form" target="_blank" rel="noopener noreferrer" class="btn mb-32" role="button">Оформить на Госуслугах</a>
+
+            <h3 class="text-medium mb-8">2. «Зарплата мамы 2.0» (Мурманская область)</h3>
+            <p>Региональная программа поддержки при рождении второго ребенка (выплачивается до 1,5 лет).</p>
+            <div class="sum-badge mt-12">19 200 руб. / месяц</div>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы:</h3>
+                <ul>
+                    <li>Паспорт РФ (с мурманской пропиской)</li>
+                    <li>Свидетельства о рождении обоих детей</li>
+                    <li>СНИЛС всех членов семьи</li>
+                    <li>Реквизиты счета карты «Мир»</li>
+                </ul>
+            </div>
+            <a href="https://51gosuslugi.ru/" target="_blank" rel="noopener noreferrer" class="btn mb-32" role="button">Оформить на Региональном портале</a>
+
+            <h3 class="text-medium mb-8">3. Материнский (семейный) капитал</h3>
+            <p>Поскольку первый ребенок был рожден в 2005 году (до старта государственной программы), рождение второго ребенка дает право на получение сертификата сразу в максимальном объеме.</p>
+            <div class="sum-badge mt-12">963 243 рубля</div>
+            <p class="text-small text-muted mb-16">Сертификат формируется в личном кабинете Госуслуг автоматически после регистрации рождения в ЗАГСе.</p>
+
+            <div class="tech-note mt-16">
+                <strong>Ежемесячная выплата наличными из маткапитала:</strong><br>
+                Вы имеете право не только использовать маткапитал на целевые нужды, но и оформить ежемесячную выплату «на руки» до достижения ребенком 3 лет.<br><br>
+                Если ваш официальный доход на одного члена семьи не превышает двух прожиточных минимумов, Социальный фонд одобрит выплату. Каждый месяц на вашу карту «Мир» будет поступать <strong>25 614 руб.</strong>, которые просто вычитаются из общей суммы материнского капитала.
+            </div>
+            
+            <div class="docs-list">
+                <h3>Необходимые документы для выплаты:</h3>
+                <ul>
+                    <li>Паспорт РФ</li>
+                    <li>Свидетельство о рождении ребенка</li>
+                    <li>Сертификат на материнский капитал</li>
+                    <li>Реквизиты счета карты «Мир»</li>
+                </ul>
+            </div>
+
+            <a href="https://www.gosuslugi.ru/600121/1/form" target="_blank" rel="noopener noreferrer" class="btn" role="button">Заявление на ежемесячную выплату из Маткапитала</a>
+            <a href="https://www.consultant.ru/document/cons_doc_LAW_64872/" target="_blank" rel="noopener noreferrer" class="source-link">ФЗ-256 (О дополнительных мерах господдержки)</a>
+        </section>
+    </main>
+</div>
+
+<a href="#top" class="back-to-top" aria-label="Вернуться наверх">↑</a>
+
+</body>
+</html>
